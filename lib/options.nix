@@ -103,15 +103,18 @@ rec {
   /* Creaties an Option attribute set for an option that specifies the
      package a module should use.
   */
-  mkPackageOption = { name, pkgs ? null, defaultPath, default ?
-    attrByPath defaultPath
+  mkPackageOption = let rmPrefix = path: if head path == "pkgs" || head path == "nixpkgs" then tail path else path;
+  withPrefix = path: [ "pkgs" ] ++ rmPrefix path;
+  in
+  { name ? elemAt defaultPath (length defaultPath), pkgs ? null, defaultPath ? [ name ], default ?
+    attrByPath (rmPrefix defaultPath)
     (throw "defaultPath can't be found in pkgs (or it is null)") pkgs
   , defaultText ? literalExpression defaultString
-  , defaultString ? concatStringsSep "." defaultPath, examplePath ? null
+  , defaultString ? concatStringsSep "." (withPrefix defaultPath), examplePath ? null
   , example ? attrByPath examplePath
     (throw "examplePath can't be found in pkgs (or it is null)") pkgs
   , exampleText ? literalExpression exampleString
-  , exampleString ? concatStringsSep "." examplePath }:
+  , exampleString ? concatStringsSep "." (withPrefix examplePath) }:
   mkOption {
     type = lib.types.package;
     description = "The ${name} package to use.";
