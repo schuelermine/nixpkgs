@@ -26,6 +26,7 @@ let
     take
     ;
   inherit (lib.attrsets)
+    attrByPath
     optionalAttrs
     ;
   inherit (lib.strings)
@@ -106,13 +107,20 @@ rec {
        mkPackageOption { name = "foo"; default = pkgs.hello; }
        => { _type = "option"; default = «derivation /nix/store/3r2vg51hlxj3cx5vscp0vkv60bqxkaq0-hello-2.10.drv»; description = "The foo package to use."; example = «derivation /nix/store/3r2vg51hlxj3cx5vscp0vkv60bqxkaq0-hello-2.10.drv»; type = { ... }; }
      */
-  mkPackageOption = { name, default, example ? default }:
-    mkOption {
-      type = lib.types.package;
-      description = "The ${name} package to use.";
-      inherit default example;
-    };
-
+mkPackageOption = { name, pkgs ? null, defaultPath, default ?
+    attrByPath defaultPath
+    (throw "defaultPath can't be found in pkgs (or it is null)") pkgs
+  , defaultText ? literalExpression defaultString
+  , defaultString ? concatStringsSep "." defaultPath, examplePath ? null
+  , example ? attrByPath examplePath
+    (throw "examplePath can't be found in pkgs (or it is null)") pkgs
+  , exampleText ? literalExpression exampleString
+  , exampleString ? concatStringsSep "." examplePath }:
+  mkOption {
+    type = lib.types.package;
+    description = "The ${name} package to use.";
+    inherit default example defaultText;
+  };
   /* This option accepts anything, but it does not produce any result.
 
      This is useful for sharing a module across different module sets
