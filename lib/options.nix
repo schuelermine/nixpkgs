@@ -113,7 +113,7 @@ rec {
     (throw "defaultPath can't be found in pkgs (or it is null)") pkgs
   , defaultText ? literalExpression defaultString
   , defaultString ? concatStringsSep "." (withPrefix defaultPath)
-  , examplePath ? null, example ? attrByPath examplePath
+  , examplePath ? [ name ], example ? attrByPath (rmPrefix examplePath)
     (throw "examplePath can't be found in pkgs (or it is null)") pkgs
   , exampleText ? literalExpression exampleString
   , exampleString ? concatStringsSep "." (withPrefix examplePath) }:
