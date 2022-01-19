@@ -103,15 +103,17 @@ rec {
   /* Creaties an Option attribute set for an option that specifies the
      package a module should use.
   */
-  mkPackageOption = let rmPrefix = path: if head path == "pkgs" || head path == "nixpkgs" then tail path else path;
-  withPrefix = path: [ "pkgs" ] ++ rmPrefix path;
-  in
-  { name ? elemAt defaultPath (length defaultPath), pkgs ? null, defaultPath ? [ name ], default ?
-    attrByPath (rmPrefix defaultPath)
+
+  mkPackageOption = let
+    rmPrefix = path:
+      if head path == "pkgs" || head path == "nixpkgs" then tail path else path;
+    withPrefix = path: [ "pkgs" ] ++ rmPrefix path;
+  in { name ? elemAt defaultPath (length defaultPath), pkgs ? null
+  , defaultPath ? [ name ], default ? attrByPath (rmPrefix defaultPath)
     (throw "defaultPath can't be found in pkgs (or it is null)") pkgs
   , defaultText ? literalExpression defaultString
-  , defaultString ? concatStringsSep "." (withPrefix defaultPath), examplePath ? null
-  , example ? attrByPath examplePath
+  , defaultString ? concatStringsSep "." (withPrefix defaultPath)
+  , examplePath ? null, example ? attrByPath examplePath
     (throw "examplePath can't be found in pkgs (or it is null)") pkgs
   , exampleText ? literalExpression exampleString
   , exampleString ? concatStringsSep "." (withPrefix examplePath) }:
