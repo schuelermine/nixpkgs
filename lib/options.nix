@@ -99,6 +99,20 @@ rec {
     type = lib.types.bool;
   };
 
+  /* Creaties an Option attribute set for an option that specifies the
+     package a module should use.
+
+     Example:
+       mkPackageOption { name = "foo"; default = pkgs.hello; }
+       => { _type = "option"; default = «derivation /nix/store/3r2vg51hlxj3cx5vscp0vkv60bqxkaq0-hello-2.10.drv»; description = "The foo package to use."; example = «derivation /nix/store/3r2vg51hlxj3cx5vscp0vkv60bqxkaq0-hello-2.10.drv»; type = { ... }; }
+     */
+  mkPackageOption = { name, default, example ? default }:
+    mkOption {
+      type = lib.types.package;
+      description = "The ${name} package to use.";
+      inherit default example
+    };
+
   /* This option accepts anything, but it does not produce any result.
 
      This is useful for sharing a module across different module sets
