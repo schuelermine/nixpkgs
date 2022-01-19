@@ -110,7 +110,7 @@ rec {
     mkOption {
       type = lib.types.package;
       description = "The ${name} package to use.";
-      inherit default example
+      inherit default example;
     };
 
   /* This option accepts anything, but it does not produce any result.
