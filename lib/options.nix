@@ -110,6 +110,7 @@ rec {
      Because of this, you need to pass nixpkgs itself as the first argument.
 
      The second argument is the name of the option, used in the description "The <name> package to use.".
+     If you want to provide more information, set extraDescription.
 
      You can also pass an example value, either a literal string or a package's attribute path.
 
@@ -125,17 +126,31 @@ rec {
          example = "pkgs.haskell.package.ghc921.ghc.withPackages (hkgs: [ hkgs.primes ])";
        }
        => { _type = "option"; default = «derivation /nix/store/jxx55cxsjrf8kyh3fp2ya17q99w7541r-ghc-8.10.7.drv»; defaultText = { ... }; description = "The GHC package to use."; example = { ... }; type = { ... }; }
+
+     Example:
+       mkPackageOption pkgs "git" {
+         extraDescription = "This is an example and doesn't actually do anything.";
+       }
+       => { _type = "option"; default = «derivation /nix/store/wwjccg3yy9hhcs3lha1k96x5wxjc62bf-git-2.34.1.drv»; defaultText = { ... }; description = "The git package to use.\nThis is an example and doesn’t actually do anything.\n"; type = { ... }; }
   */
   mkPackageOption =
-    # Package set (a specific version of nixpkgs)
+    # Package set (a specific version of nixpkgs).
     pkgs:
-      # Name for the package, shown in option description
+      # Name for the package, shown in option description.
       name:
-      { default ? [ name ], example ? null }:
+      {
+      # Attribute path of the default package in the package set.
+      default ? [ name ],
+      # Example value used in the manual.
+      example ? null,
+      # Additional information added to the description.
+      extraDescription ? ""
+      }:
       let default' = if !isList default then [ default ] else default;
       in mkOption {
         type = lib.types.package;
-        description = "The ${name} package to use.";
+        description = "The ${name} package to use." +
+          (if extraDescription != "" then "\n${extraDescription}\n" else "");
         default = attrByPath default'
           (throw "${concatStringsSep "." default'} cannot be found in pkgs") pkgs;
         defaultText = literalExpression ("pkgs." + concatStringsSep "." default');

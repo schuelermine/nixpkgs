@@ -95,10 +95,12 @@ Creates an Option attribute set for an option that specifies the package a modul
 **Note**: You shouldn’t necessarily make package options for all of your modules. You can always overwrite a specific package throughout nixpkgs by using [nixpkgs overlays](https://nixos.org/manual/nixpkgs/stable/#chap-overlays).
 
 The default package is specified as a list of strings representing its attribute path in nixpkgs. Because of this, you need to pass nixpkgs itself as the first argument.
+You can omit the default path if the name of the option is also an attribute path in nixpkgs.
 
-The second argument is the name of the option, used in the description "The \<name\> package to use.". You can also pass an example value, either a literal string or a package's attribute path.
+The second argument is the name of the option, used in the description "The \<name\> package to use.".
+If you want to provide more information, you can set `extraDescription`.
 
-You can omit the default path if the name of the option is also attribute path in nixpkgs.
+You can also pass an `example` value in the final argument set, either a literal string or a package's attribute path.
 
 ::: {#ex-options-declarations-util-mkPackageOption .title}
 Examples:
@@ -130,6 +132,22 @@ lib.mkOption {
   description = "The GHC package to use.";
 }
 ```
+
+::: {#ex-options-declarations-util-mkPackageOption-ghc-extraDescription .example}
+```nix
+lib.mkPackageOption pkgs "git" {
+  extraDescription = "This is an example and doesn't actually do anything.";
+}
+# is like
+lib.mkOption {
+  type = lib.types.package;
+  default = pkgs.git;
+  defaultText = lib.literalExpression "pkgs.git";
+  description = ''
+    The git package to use.
+    This is an example and doesn't actually do anything.
+  '';
+}
 
 ## Extensible Option Types {#sec-option-declarations-eot}
 
