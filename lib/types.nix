@@ -506,10 +506,24 @@ rec {
       description = "function that evaluates to a(n) ${elemType.name}";
       check = isFunction;
       merge = loc: defs:
-        fnArgs: (mergeDefinitions (loc ++ [ "[function body]" ]) elemType (map (fn: { inherit (fn) file; value = fn.value fnArgs; }) defs)).mergedValue;
-      getSubOptions = elemType.getSubOptions;
-      getSubModules = elemType.getSubModules;
+        fnArgs: (mergeDefinitions (loc ++ [ "[function body]" ]) elemType
+          (map (def: { file = def.file; value = def.value fnArgs; }) defs)).mergedValue;
+      inherit (elemType) getSubOptions getSubModules;
       substSubModules = m: functionTo (elemType.substSubModules m);
+    };
+
+    valueOrFunctionTo = elemType: mkOptionType {
+      name = "valueOrFunctionTo";
+      description = "a(n) ${elemType.name} or a function that returns a(n) ${elemType.name}";
+      check = val: isFunction val || elemType.check val;
+      merge = loc: defs:
+        fnArgs: (mergeDefinitions (loc ++ "[function body or raw value]") elemType
+          (map (def: {
+            file = def.file;
+            value = if isFunction def.value then def.value fnArgs else def.value;
+          }) defs)).mergedValue;
+      substSubModules = m: valueOrFunctionTo (elemType.substSubModules m);
+      inherit (elemType) getSubOptions getSubModules;
     };
 
     # A submodule (like typed attribute set). See NixOS manual.
