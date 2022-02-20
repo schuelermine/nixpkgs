@@ -148,19 +148,25 @@ mkPackageOption pkgs &quot;name&quot; { default = [ &quot;path&quot; &quot;in&qu
           overlays</link>.
         </para>
         <para>
-          The default package is specified as a list of strings
-          representing its attribute path in nixpkgs. Because of this,
-          you need to pass nixpkgs itself as the first argument.
+          The package is specified in the third argument under
+          <literal>default</literal> as a list of strings representing
+          its attribute path in nixpkgs. Because of this, you need to
+          pass nixpkgs itself as the first argument.
         </para>
         <para>
           The second argument is the name of the option, used in the
           description <quote>The &lt;name&gt; package to use.</quote>.
-          You can also pass an example value, either a literal string or
-          a package’s attribute path.
+          To include extra information in the description, pass
+          <literal>extraDescription</literal>. You can also pass an
+          <literal>example</literal> value, either a literal string or
+          an attribute path.
         </para>
         <para>
           You can omit the default path if the name of the option is
-          also attribute path in nixpkgs.
+          also attribute path in nixpkgs. If the package’s name is the
+          end of its attribute path, you can pass an attribute path as
+          the name to use it as the default path. Otherwise, a list
+          passed as the name is the same as the last string in it.
         </para>
         <anchor xml:id="ex-options-declarations-util-mkPackageOption" />
         <para>
@@ -190,6 +196,19 @@ lib.mkOption {
   defaultText = lib.literalExpression &quot;pkgs.ghc&quot;;
   example = lib.literalExpression &quot;pkgs.haskell.package.ghc921.ghc.withPackages (hkgs: [ hkgs.primes ])&quot;;
   description = &quot;The GHC package to use.&quot;;
+}
+</programlisting>
+        <anchor xml:id="ex-options-declarations-util-mkPackageOption-extraDescription" />
+        <programlisting language="bash">
+mkPackageOption pkgs [ &quot;python39Packages&quot; &quot;pytorch&quot; ] {
+  extraDescription = &quot;This is an example and doesn't actually do anything.&quot;;
+}
+# is like
+lib.mkOptions {
+  type = lib.types.package;
+  default = pkgs.python39Packages.pytorch;
+  defaultText = lib.literalExpression &quot;pkgs.python39Packages.pytorch&quot;;
+  description = &quot;The pytorch package to use. This is an example and doesn't actually do anything.&quot;;
 }
 </programlisting>
         <section xml:id="sec-option-declarations-eot">
