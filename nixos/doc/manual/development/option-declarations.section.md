@@ -94,11 +94,16 @@ Creates an Option attribute set for an option that specifies the package a modul
 
 **Note**: You shouldn’t necessarily make package options for all of your modules. You can always overwrite a specific package throughout nixpkgs by using [nixpkgs overlays](https://nixos.org/manual/nixpkgs/stable/#chap-overlays).
 
-The default package is specified as a list of strings representing its attribute path in nixpkgs. Because of this, you need to pass nixpkgs itself as the first argument.
+The package is specified in the third argument under `default` as a list of strings representing its attribute path in nixpkgs.
+Because of this, you need to pass nixpkgs itself as the first argument.
 
-The second argument is the name of the option, used in the description "The \<name\> package to use.". You can also pass an example value, either a literal string or a package's attribute path.
+The second argument is the name of the option, used in the description "The \<name\> package to use.".
+To include extra information in the description, pass `extraDescription`.
+You can also pass an `example` value, either a literal string or an attribute path.
 
 You can omit the default path if the name of the option is also attribute path in nixpkgs.
+If the package's name is the end of its attribute path, you can pass an attribute path as the name to use it as the default path.
+Otherwise, a list passed as the name is the same as the last string in it.
 
 ::: {#ex-options-declarations-util-mkPackageOption .title}
 Examples:
@@ -128,6 +133,20 @@ lib.mkOption {
   defaultText = lib.literalExpression "pkgs.ghc";
   example = lib.literalExpression "pkgs.haskell.package.ghc921.ghc.withPackages (hkgs: [ hkgs.primes ])";
   description = "The GHC package to use.";
+}
+```
+
+::: {#ex-options-declarations-util-mkPackageOption-extraDescription .example}
+```nix
+mkPackageOption pkgs [ "python39Packages" "pytorch" ] {
+  extraDescription = "This is an example and doesn't actually do anything.";
+}
+# is like
+lib.mkOptions {
+  type = lib.types.package;
+  default = pkgs.python39Packages.pytorch;
+  defaultText = lib.literalExpression "pkgs.python39Packages.pytorch";
+  description = "The pytorch package to use. This is an example and doesn't actually do anything.";
 }
 ```
 

@@ -36,6 +36,9 @@ let
   inherit (lib.types)
     mkOptionType
     ;
+  inherit (lib.lists)
+    last
+    ;
 in
 rec {
 
@@ -103,17 +106,20 @@ rec {
   /* Creates an Option attribute set for an option that specifies the
      package a module should use for some purpose.
 
-     Type: mkPackageOption :: pkgs -> string -> { default :: [string], example :: null | string | [string] } -> option
+     Type: mkPackageOption :: pkgs -> (string|[string]) ->
+      { default :: [string], example :: null|string|[string], extraDescription :: string } ->
+      option
 
-     The package is specified as a list of strings representing its attribute path in nixpkgs.
-
+     The package is specified in the third argument under `default` as a list of strings representing its attribute path in nixpkgs.
      Because of this, you need to pass nixpkgs itself as the first argument.
 
      The second argument is the name of the option, used in the description "The <name> package to use.".
-
-     You can also pass an example value, either a literal string or a package's attribute path.
+     To include extra information in the description, pass `extraDescription`.
+     You can also pass an `example` value, either a literal string or an attribute path.
 
      You can omit the default path if the name of the option is also attribute path in nixpkgs.
+     If the package's name is the end of its attribute path, you can pass an attribute path as the name to use it as the default path.
+     Otherwise, a list passed as the name is the same as the last string in it.
 
      Example:
        mkPackageOption pkgs "hello" { }
@@ -125,20 +131,42 @@ rec {
          example = "pkgs.haskell.package.ghc921.ghc.withPackages (hkgs: [ hkgs.primes ])";
        }
        => { _type = "option"; default = «derivation /nix/store/jxx55cxsjrf8kyh3fp2ya17q99w7541r-ghc-8.10.7.drv»; defaultText = { ... }; description = "The GHC package to use."; example = { ... }; type = { ... }; }
+
+     Example:
+       mkPackageOption pkgs [ "python39Packages" "pytorch" ] {
+         extraDescription = "This is an example and doesn't actually do anything.";
+       }
+       => { _type = "option"; default = «derivation /nix/store/gvqgsnc4fif9whvwd9ppa568yxbkmvk8-python3.9-pytorch-1.10.2.drv»; defaultText = { ... }; description = "The pytorch package to use. This is an example and doesn't actually do anything."; type = { ... }; }
+
   */
   mkPackageOption =
     # Package set (a specific version of nixpkgs)
     pkgs:
       # Name for the package, shown in option description
       name:
-      { default ? [ name ], example ? null }:
-      let default' = if !isList default then [ default ] else default;
+      {
+        # The attribute path where the default package is located
+        default ? if isList name then name else [ name ],
+        # A string or an attribute path to use as an example
+        example ? null,
+        # Additional text to include in the option description
+        extraDescription ? "",
+      }:
+      let
+        name' = if isList name then last name else name;
+        nullDefault = default == null;
+        default' = if isList default then default else [ default ];
+        defaultPath = concatStringsSep "." default';
+        defaultValue =
+          if nullDefault then null
+          else attrByPath default' (throw "${defaultPath} cannot be found in pkgs") pkgs;
+        defaultText = if nullDefault then "null" else literalExpression ("pkgs." + defaultPath);
+        type = (if nullDefault then lib.types.nullOr else x: x) lib.types.package;
       in mkOption {
-        type = lib.types.package;
-        description = "The ${name} package to use.";
-        default = attrByPath default'
-          (throw "${concatStringsSep "." default'} cannot be found in pkgs") pkgs;
-        defaultText = literalExpression ("pkgs." + concatStringsSep "." default');
+        inherit type defaultText;
+        description = "The ${name'} package to use."
+          + (if extraDescription == "" then "" else " ") + extraDescription;
+        default = defaultValue;
         ${if example != null then "example" else null} = literalExpression
           (if isList example then "pkgs." + concatStringsSep "." example else example);
       };
