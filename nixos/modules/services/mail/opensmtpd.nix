@@ -31,11 +31,8 @@ in {
         description = "Whether to enable the OpenSMTPD server.";
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.opensmtpd;
-        defaultText = literalExpression "pkgs.opensmtpd";
-        description = "The OpenSMTPD package to use.";
+      package = mkPackageOption "OpenSMTPD" {
+        default = [ "opensmtpd" ];
       };
 
       setSendmail = mkOption {

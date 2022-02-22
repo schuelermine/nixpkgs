@@ -25,11 +25,7 @@ let
 in {
 
   options.services.apache-kafka = {
-    enable = mkOption {
-      description = "Whether to enable Apache Kafka.";
-      default = false;
-      type = types.bool;
-    };
+    enable = mkEnableOption "Apache Kafka";
 
     brokerId = mkOption {
       description = "Broker ID.";
@@ -99,11 +95,8 @@ in {
       ];
     };
 
-    package = mkOption {
-      description = "The kafka package to use";
-      default = pkgs.apacheKafka;
-      defaultText = literalExpression "pkgs.apacheKafka";
-      type = types.package;
+    package = mkPackageOption pkgs "kafka" {
+      default = [ "apachekafka" ];
     };
 
     jre = mkOption {

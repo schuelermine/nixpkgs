@@ -11,12 +11,8 @@ in
     programs.git = {
       enable = mkEnableOption "git";
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.git;
-        defaultText = literalExpression "pkgs.git";
-        example = literalExpression "pkgs.gitFull";
-        description = "The git package to use";
+      package = mkPackageOption pkgs "git" {
+        example = [ "gitFull" ];
       };
 
       config = mkOption {
@@ -34,13 +30,7 @@ in
 
       lfs = {
         enable = mkEnableOption "git-lfs";
-
-        package = mkOption {
-          type = types.package;
-          default = pkgs.git-lfs;
-          defaultText = literalExpression "pkgs.git-lfs";
-          description = "The git-lfs package to use";
-        };
+        package = mkPackageOption pkgs "git-lfs" { };
       };
     };
   };
