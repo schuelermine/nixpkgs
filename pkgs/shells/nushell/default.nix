@@ -18,16 +18,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "nushell";
-  version = "0.62.0";
+  version = "0.63.0";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = version;
-    sha256 = "sha256-fEwsoAbrV4fSreyB4+xcN8PGDlkLyaK+ptwgZrsBuLk=";
+    sha256 = "sha256-4thvUSOSvH/bv0aW7hGGQMvtXdS+yDfZzPRLZmPZQMQ=";
   };
 
-  cargoSha256 = "sha256-C4Eynvk3ogIl/RDwyA28hYKlkHA2eMYSCyIvAbp+NQo=";
+  cargoSha256 = "sha256-Vd8R9EsO52q840HqRzc37PirZZyTZr+Bnow5qHEacJ0=";
 
   nativeBuildInputs = [ pkg-config ]
     ++ lib.optionals (withExtraFeatures && stdenv.isLinux) [ python3 ];
@@ -38,19 +38,6 @@ rustPlatform.buildRustPackage rec {
     ++ lib.optionals (withExtraFeatures && stdenv.isDarwin) [ AppKit nghttp2 libgit2 ];
 
   buildFeatures = lib.optional withExtraFeatures "extra";
-
-  # Since 0.34, nu has an indirect dependency on `zstd-sys` (via `polars` and
-  # `parquet`, for dataframe support), which by default has an impure build
-  # (git submodule for the `zstd` C library). The `pkg-config` feature flag
-  # fixes this, but it's hard to invoke this in the right place, because of
-  # the indirect dependencies. So add a direct dependency on `zstd-sys` here
-  # at the top level, along with this feature flag, to ensure that when
-  # `zstd-sys` is transitively invoked, it triggers a pure build using the
-  # system `zstd` library provided above.
-  #
-  # (If this patch needs updating, in a nushell repo add the zstd-sys line to
-  # Cargo.toml, then `cargo update --package zstd-sys` to update Cargo.lock.)
-  cargoPatches = [ ./use-system-zstd-lib.diff ];
 
   # TODO investigate why tests are broken on darwin
   # failures show that tests try to write to paths
