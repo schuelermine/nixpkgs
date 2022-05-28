@@ -16229,6 +16229,8 @@ with pkgs;
 
   sparse = callPackage ../development/tools/analysis/sparse { };
 
+  spdx-license-matcher = callPackage ../development/tools/spdx-license-matcher { };
+
   speedtest-cli = with python3Packages; toPythonApplication speedtest-cli;
 
   spin = callPackage ../development/tools/analysis/spin { };
