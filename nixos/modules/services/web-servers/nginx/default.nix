@@ -451,7 +451,7 @@ in
         defaultText = literalExpression "pkgs.nginxStable";
         type = types.package;
         apply = p: p.override {
-          modules = p.modules ++ cfg.additionalModules;
+          modules = unique (p.modules ++ cfg.additionalModules);
         };
         description = "
           Nginx package to use. This defaults to the stable version. Note
