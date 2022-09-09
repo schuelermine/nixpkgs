@@ -26416,6 +26416,10 @@ with pkgs;
   };
   audaciousQt5 = audacious;
 
+  vst3sdk = callPackage ../development/libraries/vst3sdk {
+    inherit (xorg) libX11 xcbutil xcbutilcursor xcbutilkeysyms;
+  };
+
   audacity-gtk2 = callPackage ../applications/audio/audacity { wxGTK = wxGTK31-gtk2; };
   audacity-gtk3 = callPackage ../applications/audio/audacity { wxGTK = wxGTK31-gtk3; };
   audacity =

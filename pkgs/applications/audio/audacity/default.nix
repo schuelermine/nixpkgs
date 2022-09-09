@@ -57,6 +57,8 @@
 , CoreAudioKit ? null
 , CoreServices ? null
 , wxmac
+, conan
+# , vst3sdk
 }:
 
 # TODO
@@ -66,13 +68,13 @@
 let
   inherit (lib) optionals;
   pname = "audacity";
-  version = "3.1.3";
+  version = "3.2.0-alpha-1";
 
   wxWidgets_src = fetchFromGitHub {
     owner = pname;
     repo = "wxWidgets";
-    rev = "v${version}-${pname}";
-    sha256 = "sha256-KrmYYv23DHBYKIuxMYBioCQ2e4KWdgmuREnimtm0XNU=";
+    rev = "v3.1.3.1-${pname}";
+    hash = "sha256-1gO86/uIoo97v2KzJ7iz/hou6Fji3RkL9fM23DWyg/w=";
     fetchSubmodules = true;
   };
 
@@ -90,7 +92,7 @@ in stdenv.mkDerivation rec {
     owner = pname;
     repo = pname;
     rev = "Audacity-${version}";
-    sha256 = "sha256-sdI4paxIHDZgoWTCekjrkFR4JFpQC6OatcnJdVXCCZk=";
+    hash = "sha256-Bma9ePNJBoryS1EEXPq/WGMffIP3yDMJgaGl/wEDE/8=";
   };
 
   postPatch = ''
@@ -105,6 +107,7 @@ in stdenv.mkDerivation rec {
     gettext
     pkg-config
     python3
+    conan
   ] ++ optionals stdenv.isLinux [
     linuxHeaders
     makeWrapper
@@ -136,6 +139,7 @@ in stdenv.mkDerivation rec {
     suil
     twolame
     portaudio
+    # vst3sdk
   ] ++ optionals stdenv.isLinux [
     alsa-lib # for portaudio
     at-spi2-core
@@ -165,7 +169,7 @@ in stdenv.mkDerivation rec {
     "-DAUDACITY_REV_LONG=nixpkgs"
     "-DAUDACITY_REV_TIME=nixpkgs"
     "-DDISABLE_DYNAMIC_LOADING_FFMPEG=ON"
-    "-Daudacity_conan_enabled=Off"
+    "-Daudacity_conan_enabled=On"
     "-Daudacity_use_ffmpeg=loaded"
 
     # RPATH of binary /nix/store/.../bin/... contains a forbidden reference to /build/
