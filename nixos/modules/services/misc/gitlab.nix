@@ -40,6 +40,7 @@ let
 
   gitalyToml = pkgs.writeText "gitaly.toml" ''
     socket_path = "${lib.escape ["\""] gitalySocket}"
+    runtime_dir = "/run/gitaly"
     bin_dir = "${cfg.packages.gitaly}/bin"
     prometheus_listen_addr = "localhost:9236"
 
@@ -560,7 +561,7 @@ in {
           description = lib.mdDoc "GitLab container registry host name.";
         };
         port = mkOption {
-          type = types.int;
+          type = types.port;
           default = 4567;
           description = lib.mdDoc "GitLab container registry port.";
         };
@@ -613,7 +614,7 @@ in {
         };
 
         port = mkOption {
-          type = types.int;
+          type = types.port;
           default = 25;
           description = lib.mdDoc "Port of the SMTP server for GitLab.";
         };
@@ -1353,6 +1354,7 @@ in {
         TimeoutSec = "infinity";
         Restart = "on-failure";
         WorkingDirectory = gitlabEnv.HOME;
+        RuntimeDirectory = "gitaly";
         ExecStart = "${cfg.packages.gitaly}/bin/gitaly ${gitalyToml}";
       };
     };
@@ -1502,6 +1504,6 @@ in {
 
   };
 
-  meta.doc = ./gitlab.xml;
+  meta.doc = ./gitlab.md;
 
 }

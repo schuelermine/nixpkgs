@@ -12,23 +12,24 @@
 , gtksourceview5
 , libadwaita
 , libpanel
+, vte-gtk4
 }:
 
 stdenv.mkDerivation rec {
   pname = "pods";
-  version = "1.0.0-beta.8";
+  version = "1.0.3";
 
   src = fetchFromGitHub {
     owner = "marhkb";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-WLjXeTtg5DlZbENWYC6lHj6ccU1HGLN+v7xl5sXXvE0=";
+    sha256 = "sha256-OK43U5Xq9qrHOp+WYkRNfIsCukL1AoWB38pDZcxmvOM=";
   };
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
     name = "${pname}-${version}";
-    sha256 = "sha256-/Z0vp9Fn49+PhXwtt4Z0on4CghU1Hnu4gWcjzAWeCFk=";
+    sha256 = "sha256-aVlGi+44UXnrUf1/DbC+FqrxfuZm52/RwsYD/PkVPi0=";
   };
 
   nativeBuildInputs = [
@@ -49,6 +50,7 @@ stdenv.mkDerivation rec {
     gtksourceview5
     libadwaita
     libpanel
+    vte-gtk4
   ];
 
   meta = with lib; {

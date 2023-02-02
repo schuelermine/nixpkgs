@@ -51,6 +51,7 @@ let
     "nginx"
     "nginxlog"
     "node"
+    "nut"
     "openldap"
     "openvpn"
     "pihole"
@@ -67,12 +68,13 @@ let
     "smartctl"
     "smokeping"
     "sql"
+    "statsd"
     "surfboard"
     "systemd"
     "tor"
     "unbound"
     "unifi"
-    "unifi-poller"
+    "unpoller"
     "v2ray"
     "varnish"
     "wireguard"
@@ -229,6 +231,10 @@ in
   options.services.prometheus.exporters = mkOption {
     type = types.submodule {
       options = (mkSubModules);
+      imports = [
+        ../../../misc/assertions.nix
+        (lib.mkRenamedOptionModule [ "unifi-poller" ] [ "unpoller" ])
+      ];
     };
     description = lib.mdDoc "Prometheus exporter configuration";
     default = {};
@@ -292,13 +298,14 @@ in
         Please specify either 'services.prometheus.exporters.sql.configuration' or
           'services.prometheus.exporters.sql.configFile'
       '';
-    } ] ++ (flip map (attrNames cfg) (exporter: {
+    } ] ++ (flip map (attrNames exporterOpts) (exporter: {
       assertion = cfg.${exporter}.firewallFilter != null -> cfg.${exporter}.openFirewall;
       message = ''
         The `firewallFilter'-option of exporter ${exporter} doesn't have any effect unless
         `openFirewall' is set to `true'!
       '';
-    }));
+    })) ++ config.services.prometheus.exporters.assertions;
+    warnings = config.services.prometheus.exporters.warnings;
   }] ++ [(mkIf config.services.minio.enable {
     services.prometheus.exporters.minio.minioAddress  = mkDefault "http://localhost:9000";
     services.prometheus.exporters.minio.minioAccessKey = mkDefault config.services.minio.accessKey;
@@ -316,7 +323,7 @@ in
   );
 
   meta = {
-    doc = ./exporters.xml;
+    doc = ./exporters.md;
     maintainers = [ maintainers.willibutz ];
   };
 }

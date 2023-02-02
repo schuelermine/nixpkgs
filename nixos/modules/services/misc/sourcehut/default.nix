@@ -505,7 +505,7 @@ in
             description = lib.mdDoc "Origin URL for API, 100 more than web.";
             type = types.str;
             default = "http://${cfg.listenAddress}:${toString (cfg.meta.port + 100)}";
-            defaultText = ''http://<xref linkend="opt-services.sourcehut.listenAddress"/>:''${toString (<xref linkend="opt-services.sourcehut.meta.port"/> + 100)}'';
+            defaultText = lib.literalMD ''`"http://''${`[](#opt-services.sourcehut.listenAddress)`}:''${toString (`[](#opt-services.sourcehut.meta.port)` + 100)}"`'';
           };
           webhooks = mkOption {
             description = lib.mdDoc "The Redis connection used for the webhooks worker.";
@@ -1390,6 +1390,6 @@ in
     '')
   ];
 
-  meta.doc = ./sourcehut.xml;
+  meta.doc = ./default.md;
   meta.maintainers = with maintainers; [ tomberek ];
 }

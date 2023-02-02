@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, python38Packages
+, python3Packages
 , fetchFromGitHub
 , fetchurl
 , sd
@@ -17,6 +17,8 @@
 , CoreFoundation
 , CoreServices
 , Security
+
+, enableMinimal ? false
 }:
 
 let
@@ -41,7 +43,7 @@ let
     owner = "facebook";
     repo = "sapling";
     rev = version;
-    hash = "sha256-IzbUaFrsSMojhsbpnRj1XLkhO9V2zYdmmZls4mtZquw=";
+    hash = "sha256-zlvb+qn9SSBPZmlF8KwKTWyKj94FGOafSMRMNLsccOU";
   };
 
   addonsSrc = "${src}/addons";
@@ -49,7 +51,7 @@ let
   # Fetches the Yarn modules in Nix to to be used as an offline cache
   yarnOfflineCache = fetchYarnDeps {
     yarnLock = "${addonsSrc}/yarn.lock";
-    sha256 = "sha256-B61T0ReZPRfrRjBC3iHLVkVYiifhzOXlaG1YL6rgmj4=";
+    sha256 = "sha256-+29WAgSXVciHhLMN04yfKiWCpjM3Vo54nUdTP6owSLs";
   };
 
   # Builds the NodeJS server that runs with `sl web`
@@ -88,11 +90,7 @@ let
   };
 
   # Builds the main `sl` binary and its Python extensions
-  #
-  # FIXME(lf-): when next updating this package, delete the python 3.8 override
-  # here, since the fix for https://github.com/facebook/sapling/issues/279 that
-  # required it will be in the next release.
-  sapling = python38Packages.buildPythonPackage {
+  sapling = python3Packages.buildPythonPackage {
     pname = "sapling-main";
     inherit src version;
 
@@ -102,12 +100,12 @@ let
     cargoDeps = rustPlatform.importCargoLock {
       lockFile = ./Cargo.lock;
       outputHashes = {
-        "cloned-0.1.0" = "sha256-c3CPWVjOk+VKBLD6WuaYZvBoKi5PwgXmiwxKoCk0bsI=";
+        "cloned-0.1.0" = "sha256-DYQTK722wgeDUJtOVXHLt42G6gpe6A62rET+JH+bPKU=";
         "deltae-0.3.0" = "sha256-a9Skaqs+tVTw8x83jga+INBr+TdaMmo35Bf2wbfR6zs=";
-        "fb303_core-0.0.0" = "sha256-yoKKSBwqufFayLef2rRpX5oV1j8fL/kRkXBXIC++d7Q=";
-        "fbthrift-0.0.1+unstable" = "sha256-jtsDE5U/OavDUXRAE1N8/nujSPrWltImsFLzHaxfeM0=";
+        "fb303_core-0.0.0" = "sha256-YEFNTYvtgp8nc/1O7AbdyxCD3Xx2xCjbS17fTTEsUL0=";
+        "fbthrift-0.0.1+unstable" = "sha256-mDoYhXOzQIDqP7XdmiBbmq5VmAKAgggTNH/kW2kHv4k=";
         "reqwest-0.11.11" = "sha256-uhc8XhkGW22XDNo0qreWdXeFF2cslOOZHfTRQ30IBcE=";
-        "serde_bser-0.3.1" = "sha256-KCAC+rbczroZn/oKYTVpAPJl40yMrszt/PGol+JStDU=";
+        "serde_bser-0.3.1" = "sha256-/zn1NfXWytXvnalkgPsg9BdujVV97PGkXwmPtQGVeCc=";
       };
     };
     postPatch = ''
@@ -121,6 +119,25 @@ let
       mkdir $sourceRoot/hack_pydeps
       ${lib.concatStrings (map (li: "ln -s ${fetchurl li} $sourceRoot/hack_pydeps/${baseNameOf li.url}\n") links)}
       sed -i "s|https://files.pythonhosted.org/packages/[[:alnum:]]*/[[:alnum:]]*/[[:alnum:]]*/|file://$NIX_BUILD_TOP/$sourceRoot/hack_pydeps/|g" $sourceRoot/setup.py
+    '';
+
+    # Now, copy the "sl web" (aka edenscm-isl) results into the output of this
+    # package, so that the command can actually work. NOTES:
+    #
+    # 1) This applies on all systems (so no conditional a la postFixup)
+    # 2) This doesn't require any kind of fixup itself, so we leave it out
+    #    of postFixup for that reason, too
+    # 3) If asked, we optionally patch in a hardcoded path to the 'nodejs' package,
+    #    so that 'sl web' always works
+    # 4) 'sl web' will still work if 'nodejs' is in $PATH, just not OOTB
+    preFixup = ''
+      sitepackages=$out/lib/${python3Packages.python.libPrefix}/site-packages
+      chmod +w $sitepackages
+      cp -r ${isl} $sitepackages/edenscm-isl
+    '' + lib.optionalString (!enableMinimal) ''
+      chmod +w $sitepackages/edenscm-isl/run-isl
+      substituteInPlace $sitepackages/edenscm-isl/run-isl \
+        --replace 'NODE=node' 'NODE=${nodejs}/bin/node'
     '';
 
     postFixup = lib.optionalString stdenv.isLinux ''
@@ -138,9 +155,9 @@ let
     ]);
 
     buildInputs = [
-      curl
       openssl
     ] ++ lib.optionals stdenv.isDarwin [
+      curl
       libiconv
       CoreFoundation
       CoreServices
@@ -165,12 +182,7 @@ stdenv.mkDerivation {
     runHook preInstall
 
     mkdir -p $out
-
     cp -r ${sapling}/* $out
-
-    sitepackages=$out/lib/${python38Packages.python.libPrefix}/site-packages
-    chmod +w $sitepackages
-    cp -r ${isl} $sitepackages/edenscm-isl
 
     runHook postInstall
   '';
