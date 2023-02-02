@@ -62,24 +62,17 @@ in
     machine.screenshot("MuseScore1")
 
     machine.send_key("tab")
-    machine.sleep(1)
     machine.send_key("tab")
-    machine.sleep(1)
     machine.send_key("tab")
-    machine.sleep(1)
     machine.send_key("tab")
-    machine.sleep(1)
     machine.send_key("right")
-    machine.sleep(1)
     machine.send_key("right")
-    machine.sleep(1)
     machine.send_key("ret")
 
     machine.sleep(1)
 
     # Type the beginning of https://de.wikipedia.org/wiki/Alle_meine_Entchen
     machine.send_chars("cdef6gg5aaaa7g")
-
     machine.sleep(1)
 
     machine.screenshot("MuseScore2")
@@ -90,27 +83,23 @@ in
     machine.send_key("e")
 
     # Wait until the export dialogue appears.
-    # machine.wait_for_window("Export")
-    machine.sleep(10)
+    machine.wait_for_text("Export")
 
     machine.screenshot("MuseScore3")
 
     machine.send_key("shift-tab")
     machine.sleep(1)
     machine.send_key("ret")
-
-    machine.sleep(10)
-
+    machine.sleep(1)
     machine.send_key("ret")
 
     machine.screenshot("MuseScore4")
 
     # Wait until PDF is exported
-    # machine.wait_for_file("/root/Documents/MuseScore4/Scores/Untitled score.pdf")
-    machine.sleep(10)
+    machine.wait_for_file('"/root/Documents/MuseScore4/Scores/Untitled score.pdf"')
 
     # Check that it contains the title of the score
-    machine.succeed('pdfgrep "Untitled score" /root/Documents/MuseScore4/Scores/"Untitled score.pdf"')
+    machine.succeed('pdfgrep "Untitled score" "/root/Documents/MuseScore4/Scores/Untitled score.pdf"')
 
     machine.screenshot("MuseScore5")
   '';
